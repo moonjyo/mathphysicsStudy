@@ -6,7 +6,7 @@
 void SoftRenderer::DrawGrid2D()
 {
 	// 그리드 색상
-	LinearColor gridColor(LinearColor(0.4f, 0.8f, 0.4f, 0.2f));
+	LinearColor gridColor(LinearColor(0.8f, 0.8f, 0.8f, 0.3f));
 
 	// 가로 세로 라인 그리기
 	ScreenPoint screenHalfSize = _ScreenSize.GetHalf();
@@ -31,7 +31,7 @@ void SoftRenderer::DrawGrid2D()
 
 	// 월드 축 그리기
 	_RSI->DrawFullHorizontalLine(screenHalfSize.Y, LinearColor::Red);
-	_RSI->DrawFullVerticalLine(screenHalfSize.X, LinearColor::Blue);
+	_RSI->DrawFullVerticalLine(screenHalfSize.X, LinearColor::Green);
 }
 
 
@@ -40,17 +40,29 @@ void SoftRenderer::Update2D(float InDeltaSeconds)
 {
 	// 게임 로직에만 사용하는 변수
 	static float moveSpeed = 100.f;
+	static float scaleMin = 3.f;
+	static float scaleMax = 15.f;
+	static float scaleSpeed = 20.f;
+	static float duration = 3.f;
+	static float rotateSpeed = 180.f;
+
+	// 경과 시간에 따른 현재 각과 이를 사용한 [0,1]값의 생성
+	_CurrentTime += InDeltaSeconds;
+	_CurrentTime = Math::FMod(_CurrentTime, duration);
+	float currentRad = (_CurrentTime / duration) * Math::TwoPI;
+	float alpha = (sinf(currentRad) + 1) * 0.5f;
+
+	// [0,1]을 활용해 주기적으로 크기를 반복하기
+	_CurrentScale = Math::Lerp(scaleMin, scaleMax, alpha);
 
 	// 엔진 모듈에서 입력 관리자 가져오기
 	InputManager input = _GameEngine.GetInputManager();
+	float deltaRotation = input.GetWAxis() * rotateSpeed * InDeltaSeconds;
 	Vector2 deltaPosition = Vector2(input.GetXAxis(), input.GetYAxis()) * moveSpeed * InDeltaSeconds;
+
 	_CurrentPosition += deltaPosition;
-
-	_CurrentColor = input.SpacePressed() ? LinearColor::Gray : LinearColor::Black;
+	_CurrentDegree += deltaRotation;
 }
-
-//static std::vector<Vector2> hearts = { Vector2(0.000f, 109.141f),Vector2(0.000f, -109.141f),Vector2(69.421f, 123.000f),Vector2(-69.421f, 123.000f),Vector2(46.344f, 123.000f),Vector2(-46.344f, 123.000f),Vector2(96.000f, 114.000f),Vector2(-96.000f, 114.000f),Vector2(11.294f, 114.000f),Vector2(-11.294f, 114.000f),Vector2(107.103f, 105.000f),Vector2(-107.103f, 105.000f),Vector2(114.000f, 96.000f),Vector2(-114.000f, 96.000f),Vector2(118.523f, 87.000f),Vector2(-118.523f, 87.000f),Vector2(121.412f, 78.000f),Vector2(-121.412f, 78.000f),Vector2(123.053f, 69.000f),Vector2(-123.053f, 69.000f),Vector2(123.676f, 60.000f),Vector2(-123.676f, 60.000f),Vector2(123.432f, 51.000f),Vector2(-123.432f, 51.000f),Vector2(122.421f, 42.000f),Vector2(-122.421f, 42.000f),Vector2(120.715f, 33.000f),Vector2(-120.715f, 33.000f),Vector2(118.361f, 24.000f),Vector2(-118.361f, 24.000f),Vector2(115.394f, 15.000f),Vector2(-115.394f, 15.000f),Vector2(111.836f, 6.000f),Vector2(-111.836f, 6.000f),Vector2(107.697f, -3.000f),Vector2(-107.697f, -3.000f),Vector2(102.979f, -12.000f),Vector2(-102.979f, -12.000f),Vector2(97.674f, -21.000f),Vector2(-97.674f, -21.000f),Vector2(91.765f, -30.000f),Vector2(-91.765f, -30.000f),Vector2(85.221f, -39.000f),Vector2(-85.221f, -39.000f),Vector2(78.000f, -48.000f),Vector2(-78.000f, -48.000f),Vector2(70.039f, -57.000f),Vector2(-70.039f, -57.000f),Vector2(61.247f, -66.000f),Vector2(-61.247f, -66.000f),Vector2(51.496f, -75.000f),Vector2(-51.496f, -75.000f),Vector2(40.585f, -84.000f),Vector2(-40.585f, -84.000f),Vector2(28.194f, -93.000f),Vector2(-28.194f, -93.000f),Vector2(13.740f, -102.000f),Vector2(-13.740f, -102.000f) };
-static std::vector<Vector2> hearts = { Vector2(10.0f, -160.0f),Vector2(-10.0f, -160.0f),Vector2(20.0f, -170.0f),Vector2(-20.0f, -170.0f),Vector2(30.0f, -180.0f),Vector2(-30.0f, -180.0f),Vector2(-40.0f, -190.0f),Vector2(40.0f, -190.0f),Vector2(-50.0f, -200.0f),Vector2(50.0f, -200.0f), Vector2(0.000f, 150.0f), Vector2(10.000f, 150.0f), Vector2(0.000f, -150.0f),Vector2(-10.0f, 150.0f),Vector2(20.0f, 150.0f), Vector2(-20.0f, 150.0f), Vector2(0.0f, 140.0f),Vector2(0.0f, -140.0f),Vector2(10.0f, 140.0f),Vector2(-10.0f, 140.0f),Vector2(-20.0f, 140.0f),Vector2(20.0f, 140.0f), Vector2(0.0f, 130.0f),Vector2(0.0f, -130.0f),Vector2(10.0f, 130.0f), Vector2(-10.0f, 130.0f),Vector2(-20.0f, 130.0f),Vector2(20.0f, 130.0f), Vector2(0.0f, 120.0f),Vector2(0.0f, -120.0f),Vector2(10.0f, 120.0f),Vector2(-10.0f, 120.0f),Vector2(20.0f, 120.0f),Vector2(-20.0f, 120.0f),Vector2(0.0f, 110.0f),Vector2(0.0f, -110.0f),Vector2(10.0f, 110.0f), Vector2(-10.0f, 110.0f),Vector2(20.0f, 110.0f), Vector2(-20.0f, 110.0f), Vector2(0.0f, 100.0f),Vector2(0.0f, -100.0f),Vector2(0.0f, 90.0f),Vector2(0.0f, -90.0f),Vector2(0.0f, 80.0f),Vector2(0.0f, -80.0f),Vector2(0.0f, 70.0f),Vector2(0.0f, -70.0f),Vector2(0.0f, 60.0f),Vector2(0.0f, -60.0f),Vector2(0.0f, 50.0f),Vector2(0.0f, -50.0f),Vector2(0.0f, 40.0f),Vector2(0.0f, -40.0f),Vector2(0.0f, 30.0f),Vector2(0.0f, -30.0f),Vector2(0.0f, 20.0f),Vector2(0.0f, -20.0f),Vector2(0.0f, 10.0f),Vector2(0.0f, -10.0f),Vector2(0.0f, 0.0f), Vector2(30.0f, 80.0f), Vector2(-30.0f, 80.0f), Vector2(20.0f, 70.0f), Vector2(-20.0f, 70.0f), Vector2(10.0f, 60.0f), Vector2(-10.0f, 60.0f), Vector2(40.0f, 90.0f), Vector2(50.0f, 100.0f), Vector2(60.0f, 110.0f), Vector2(70.0f, 120.0f),Vector2(80.0f, 130.0f),Vector2(90.0f, 140.0f),Vector2(-40.0f, 90.0f), Vector2(-50.0f, 100.0f), Vector2(-60.0f, 110.0f), Vector2(-70.0f, 120.0f),Vector2(-80.0f, 130.0f),Vector2(-90.0f, 140.0f) };
 
 // 렌더링 로직
 void SoftRenderer::Render2D()
@@ -58,19 +70,65 @@ void SoftRenderer::Render2D()
 	// 격자 그리기
 	DrawGrid2D();
 
-	for (auto const& v : hearts)
+	static float increment = 0.001f;
+	float rad = 0.f;
+	static std::vector<Vector2> hearts;
+	if (hearts.empty())
 	{
-		Vector2 target = v + _CurrentPosition;
+		for (rad = 0.f; rad < Math::TwoPI; rad += increment)
+		{
+			/*float sin = sinf(rad);
+			float cos = cosf(rad);
+			float cos2 = cosf(2 * rad);
+			float cos3 = cosf(3 * rad);
+			float cos4 = cosf(4 * rad);
+			float x = 16.f * sin * sin * sin;
+			float y = 13 * cos - 5 * cos2 - 2 * cos3 - cos4;
+			hearts.push_back(Vector2(x, y));*/
 
-		// 지정한 점을 기준으로 상하좌우로 점 찍기
-		_RSI->DrawPoint(target, _CurrentColor);
-		_RSI->DrawPoint(target + Vector2::UnitX, _CurrentColor);
-		_RSI->DrawPoint(target - Vector2::UnitX, _CurrentColor);
-		_RSI->DrawPoint(target + Vector2::UnitY, _CurrentColor);
-		_RSI->DrawPoint(target - Vector2::UnitY, _CurrentColor);
+			float sin = sinf(rad);
+			float sin2 = sinf(2 * rad);
+			float sin3 = sinf(3 * rad);
+
+			float cos = cosf(rad);
+			float cos2 = cosf(2 * rad);
+			float cos3 = cosf(3 * rad);
+
+			float x = 5 * cos2 + 2 * cos3;
+			float y = 2 * sin3 - 5 * sin2;
+			hearts.push_back(Vector2(x, y));
+		}
 	}
 
-	// 현재 위치를 화면에 출력
-	_RSI->PushStatisticText(_CurrentPosition.ToString());
-}
+	// 아핀 변환 행렬 ( 크기 ) 
+	Matrix3x3 sMat(Vector3::UnitX * _CurrentScale, Vector3::UnitY * _CurrentScale, Vector3::UnitZ);
+	//_CurrentScale
 
+	// 아핀 변환 행렬 ( 회전 ) 
+	float sin, cos;
+	Math::GetSinCos(sin, cos, _CurrentDegree);
+	Matrix3x3 rMat( Vector3(cos, sin, 0.f), Vector3(-sin, cos, 0.f), Vector3::UnitZ);
+
+	// 아핀 변환 행렬 ( 이동 ) 
+	Matrix3x3 tMat(Vector3::UnitX, Vector3::UnitY, Vector3(_CurrentPosition.X, _CurrentPosition.Y, 1));
+
+	// 모든 아핀 변환의 조합 행렬
+	Matrix3x3 cMat = tMat * rMat * sMat;
+
+	// 각 값 초기화
+	rad = 0.f;
+	HSVColor hsv(0.f, 1.f, 0.85f); // 잘 보이도록 채도를 조금만 줄였음. 
+	for (auto const& v : hearts)
+	{
+		Vector2 target = cMat * v;
+		hsv.H = rad / Math::TwoPI;
+		_RSI->DrawPoint(target, hsv.ToLinearColor());
+		rad += increment;
+	}
+
+	// 현재 위치와 스케일을 화면에 출력
+	_RSI->PushStatisticText(std::string("Position : ") + _CurrentPosition.ToString());
+	_RSI->PushStatisticText(std::string("Scale : ") + std::to_string(_CurrentScale));
+	_RSI->PushStatisticText(std::string("Time : ") + std::to_string(_CurrentTime));
+	_RSI->PushStatisticText(std::string("Rotation : ") + std::to_string(_CurrentDegree));
+}
